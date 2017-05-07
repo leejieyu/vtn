@@ -65,12 +65,14 @@ import static org.onosproject.net.flow.criteria.Criterion.Type.IPV4_DST;
 import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.VLAN_PUSH;
 import static org.opencord.cordvtn.api.net.ServiceNetwork.NetworkType.*;
 
+
 /**
  * Provides network connectivity for default service instances.
  */
 @Component(immediate = true)
 public class DefaultInstanceHandler extends AbstractInstanceHandler implements InstanceHandler {
 
+    //private final Logger log = LoggerFactory.getLogger(getClass());
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowRuleService flowRuleService;
 
@@ -192,7 +194,7 @@ public class DefaultInstanceHandler extends AbstractInstanceHandler implements I
         long vni = snet.segmentId().id();
         Ip4Prefix serviceIpRange = snet.subnet().getIp4Prefix();
 
-        populateInPortRule(instance, install);
+        populateInPortRule(instance, install,vni);
         populateDstIpRule(instance, vni, install);
         populateTunnelInRule(instance, vni, install);
 
@@ -205,7 +207,8 @@ public class DefaultInstanceHandler extends AbstractInstanceHandler implements I
         }
     }
 
-    private void populateInPortRule(Instance instance, boolean install) {
+    private void populateInPortRule(Instance instance, boolean install, long vni) {
+        long metadataMask = 0x7fffffffffffffffL;
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchInPort(instance.portNumber())
                 .matchEthType(Ethernet.TYPE_IPV4)
@@ -213,6 +216,7 @@ public class DefaultInstanceHandler extends AbstractInstanceHandler implements I
                 .build();
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .writeMetadata(vni,metadataMask)
                 .transition(CordVtnPipeline.TABLE_ACCESS)
                 .build();
 
@@ -233,6 +237,7 @@ public class DefaultInstanceHandler extends AbstractInstanceHandler implements I
                 .build();
 
         treatment = DefaultTrafficTreatment.builder()
+                .writeMetadata(vni,metadataMask)
                 .transition(CordVtnPipeline.TABLE_IN_SERVICE)
                 .build();
 
@@ -247,6 +252,9 @@ public class DefaultInstanceHandler extends AbstractInstanceHandler implements I
                 .build();
 
         pipeline.processFlowRule(install, flowRule);
+
+        log.info("InPortRule of Instance: "+instance+
+                         "have been installed, set metadata as the value of VNI: "+vni);
     }
 
     private void populateDstIpRule(Instance instance, long vni, boolean install) {
@@ -255,6 +263,7 @@ public class DefaultInstanceHandler extends AbstractInstanceHandler implements I
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPDst(instance.ipAddress().toIpPrefix())
+                .matchMetadata(vni)
                 .build();
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
