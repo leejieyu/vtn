@@ -65,7 +65,6 @@ import static org.onosproject.net.flow.criteria.Criterion.Type.IPV4_DST;
 import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.VLAN_PUSH;
 import static org.opencord.cordvtn.api.net.ServiceNetwork.NetworkType.*;
 
-
 /**
  * Provides network connectivity for default service instances.
  */
@@ -194,15 +193,15 @@ public class DefaultInstanceHandler extends AbstractInstanceHandler implements I
         long vni = snet.segmentId().id();
         Ip4Prefix serviceIpRange = snet.subnet().getIp4Prefix();
 
-        populateInPortRule(instance, install,vni);
+        populateInPortRule(instance, install, vni);
         populateDstIpRule(instance, vni, install);
         populateTunnelInRule(instance, vni, install);
 
         if (install) {
-            populateDirectAccessRule(serviceIpRange, serviceIpRange, true);
+            populateDirectAccessRule(vni, serviceIpRange, serviceIpRange, true);
             populateServiceIsolationRule(serviceIpRange, true);
         } else if (getInstances(snet.id()).isEmpty()) {
-            populateDirectAccessRule(serviceIpRange, serviceIpRange, false);
+            populateDirectAccessRule(vni, serviceIpRange, serviceIpRange, false);
             populateServiceIsolationRule(serviceIpRange, false);
         }
     }
@@ -216,7 +215,7 @@ public class DefaultInstanceHandler extends AbstractInstanceHandler implements I
                 .build();
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .writeMetadata(vni,metadataMask)
+                .writeMetadata(vni, metadataMask)
                 .transition(CordVtnPipeline.TABLE_ACCESS)
                 .build();
 
@@ -237,7 +236,7 @@ public class DefaultInstanceHandler extends AbstractInstanceHandler implements I
                 .build();
 
         treatment = DefaultTrafficTreatment.builder()
-                .writeMetadata(vni,metadataMask)
+                .writeMetadata(vni, metadataMask)
                 .transition(CordVtnPipeline.TABLE_IN_SERVICE)
                 .build();
 
@@ -338,9 +337,10 @@ public class DefaultInstanceHandler extends AbstractInstanceHandler implements I
         pipeline.processFlowRule(install, flowRule);
     }
 
-    private void populateDirectAccessRule(Ip4Prefix srcRange, Ip4Prefix dstRange, boolean install) {
+    private void populateDirectAccessRule(long vni, Ip4Prefix srcRange, Ip4Prefix dstRange, boolean install) {
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
+                .matchMetadata(vni)
                 .matchIPSrc(srcRange)
                 .matchIPDst(dstRange)
                 .build();

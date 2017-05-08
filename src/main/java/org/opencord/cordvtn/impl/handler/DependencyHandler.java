@@ -311,13 +311,13 @@ public class DependencyHandler extends AbstractInstanceHandler {
                 provider.serviceIp().getIp4Address(),
                 providerGroups,
                 install);
-        populateDirectAccessRule(subs_vni,sSubnet, pSubnet, install);
+        populateDirectAccessRule(subs_vni, sSubnet, pSubnet, install);
         if (type == BIDIRECTIONAL) {
-            populateDirectAccessRule(prod_vni,pSubnet, sSubnet, install);
+            populateDirectAccessRule(prod_vni, pSubnet, sSubnet, install);
         }
     }
 
-    private void populateIndirectAccessRule(long subs_vni,IpPrefix srcSubnet, IpAddress serviceIp,
+    private void populateIndirectAccessRule(long subs_vni, IpPrefix srcSubnet, IpAddress serviceIp,
                                             Map<DeviceId, GroupId> outGroups,
                                             boolean install) {
         // TODO support IPv6
@@ -347,7 +347,7 @@ public class DependencyHandler extends AbstractInstanceHandler {
         }
     }
 
-    private void populateDirectAccessRule(long subs_vni,IpPrefix srcIp, IpPrefix dstIp, boolean install) {
+    private void populateDirectAccessRule(long subs_vni, IpPrefix srcIp, IpPrefix dstIp, boolean install) {
         // TODO support IPv6
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
