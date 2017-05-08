@@ -252,8 +252,8 @@ public class DefaultInstanceHandler extends AbstractInstanceHandler implements I
 
         pipeline.processFlowRule(install, flowRule);
 
-        log.info("InPortRule of Instance: "+instance+
-                         "have been installed, set metadata as the value of VNI: "+vni);
+        log.info("InPortRule of Instance: " + instance +
+                         "have been installed, set metadata as the value of VNI: " + vni);
     }
 
     private void populateDstIpRule(Instance instance, long vni, boolean install) {
