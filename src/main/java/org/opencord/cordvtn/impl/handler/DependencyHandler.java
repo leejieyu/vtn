@@ -302,28 +302,28 @@ public class DependencyHandler extends AbstractInstanceHandler {
         IpPrefix sSubnet = subscriber.subnet().getIp4Prefix();
         IpPrefix pSubnet = provider.subnet().getIp4Prefix();
 
-        long subsVNI = subscriber.segmentId().id();
-        long prodVNI = provider.segmentId().id();
+        long vniSubs = subscriber.segmentId().id();
+        long vniProd = provider.segmentId().id();
         populateInPortRule(subscriberPorts, providerGroups, install);
         populateIndirectAccessRule(
-                subsVNI,
+                vniSubs,
                 sSubnet,
                 provider.serviceIp().getIp4Address(),
                 providerGroups,
                 install);
-        populateDirectAccessRule(subsVNI, sSubnet, pSubnet, install);
+        populateDirectAccessRule(vniSubs, sSubnet, pSubnet, install);
         if (type == BIDIRECTIONAL) {
-            populateDirectAccessRule(prodVNI, pSubnet, sSubnet, install);
+            populateDirectAccessRule(vniProd, pSubnet, sSubnet, install);
         }
     }
 
-    private void populateIndirectAccessRule(long subsVNI, IpPrefix srcSubnet, IpAddress serviceIp,
+    private void populateIndirectAccessRule(long vniSubs, IpPrefix srcSubnet, IpAddress serviceIp,
                                             Map<DeviceId, GroupId> outGroups,
                                             boolean install) {
         // TODO support IPv6
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
-                .matchMetadata(subsVNI)
+                .matchMetadata(vniSubs)
                 .matchIPSrc(srcSubnet)
                 .matchIPDst(serviceIp.toIpPrefix())
                 .build();
@@ -347,11 +347,11 @@ public class DependencyHandler extends AbstractInstanceHandler {
         }
     }
 
-    private void populateDirectAccessRule(long subsVNI, IpPrefix srcIp, IpPrefix dstIp, boolean install) {
+    private void populateDirectAccessRule(long vniSubs, IpPrefix srcIp, IpPrefix dstIp, boolean install) {
         // TODO support IPv6
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
-                .matchMetadata(subsVNI)
+                .matchMetadata(vniSubs)
                 .matchIPSrc(srcIp)
                 .matchIPDst(dstIp)
                 .build();
